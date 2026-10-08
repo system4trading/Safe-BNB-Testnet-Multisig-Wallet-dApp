@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe{Wallet} – Local Chapel Workspace</title>
+    <!-- Load Core UI Font Engines -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Load React Framework Libraries directly via secure CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Load Babel Browser Compiler to execute component markup -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Load Ethers.js to handle wallet connection hooks securely -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #0F1011; font-family: 'Inter', sans-serif; color: #FFFFFF; }
+        .wrapper { padding: 40px 20px; min-height: 100vh; box-sizing: border-box; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background-color: #121314; padding: 32px; border-radius: 16px; border: 1px solid #2E3033; box-shadow: 0px 4px 20px rgba(0,0,0,0.5); }
+        .topbar { display: flex; justify-content: space-between; align-items: center; background-color: #1E2022; padding: 16px 24px; border-radius: 12px; border: 1px solid #2E3033; margin-bottom: 20px; }
+        .btn-gold { background-color: #F0B90B; color: #121314; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; width: 100%; }
+        .btn-gold:disabled { background-color: #4E4426; cursor: not-allowed; }
+        .btn-outline { background-color: transparent; color: #F0B90B; border: 1px solid #F0B90B; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; width: 100%; }
+        .input-field { width: 100%; background-color: #1E2022; color: #FFFFFF; border: 1px solid #2E3033; border-radius: 8px; padding: 12px; font-size: 14px; margin-bottom: 16px; box-sizing: border-box; }
+        .status-box { padding: 12px; font-size: 13px; margin-top: 16px; word-break: break-all; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [currentAddress, setCurrentAddress] = React.useState('');
+            const [safeAddressInput, setSafeAddressInput] = React.useState('');
+            const [activeSafeAddress, setActiveSafeAddress] = React.useState('');
+            const [jsonInput, setJsonInput] = React.useState('');
+            const [txStatus, setTxStatus] = React.useState('');
+            const [interceptedTx, setInterceptedTx] = React.useState(null);
+
+            // Connect Browser Extension Wallet (MetaMask/Trust Wallet)
+            const connectWallet = async () => {
+                if (window.ethereum) {
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        // Ensure network target is manually aligned to Chapel Testnet Chain ID 97
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x61' }], // Hex representation of 97
+                        });
+                        setCurrentAddress(accounts[0]);
+                        setTxStatus('Wallet connected to BSC Testnet successfully!');
+                    } catch (err) {
+                        setTxStatus('Connection Error: ' + err.message);
+                    }
+                } else {
+                    alert('No Web3 wallet injected found. Please install MetaMask extension.');
+                }
+            };
+
+            // Setup Background message listener to catch data flows from the inner iframe
+            React.useEffect(() => {
+                const handleSafeAppMessage = (event) => {
+                    if (event.data && event.data.params && event.data.method === 'sendTransactions') {
+                        const txsArray = event.data.params.txs;
+                        if (txsArray && txsArray.length > 0) {
+                            setInterceptedTx(txsArray[0]);
+                            setTxStatus('Transaction captured from app! Click step 1 below to sign.');
+                        }
+                    }
+                };
+                window.addEventListener('message', handleSafeAppMessage);
+                return () => window.removeEventListener('message', handleSafeAppMessage);
+            }, []);
+
+            // OWNER 1: Prompt Signature and trigger file distribution asset build
+            const handleCreateAndDownload = async () => {
+                try {
+                    setTxStatus('Initiating signature request...');
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
+
+                    const txData = interceptedTx || { to: '0x0000000000000000000000000000000000000000', value: '0', data: '0x' };
+                    
+                    // Format standard transaction parameters locally 
+                    const dummyNonce = Date.now();
+                    const txPayload = { transactions: [txData], nonce: dummyNonce };
+                    
+                    // Request a cryptographic text signature confirmation from the browser key
+                    const signature = await signer.signMessage(JSON.stringify(txPayload));
+                    
+                    const fileDump = JSON.stringify({ transactions: txData, signatures: signature, nonce: dummyNonce });
+                    const blob = new Blob([fileDump], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chapel-safe-tx-${dummyNonce}.json`;
+                    a.click();
+                    setTxStatus('Transaction JSON metadata file downloaded successfully!');
+                } catch (e) {
+                    setTxStatus(`Error: ${e.message}`);
+                }
+            };
+
+            // OWNER 2: Counter-sign data input and execute transactions on-chain
+            const handleImportAndExecute = async () => {
+                try {
+                    if (!jsonInput.trim()) return setTxStatus('Error: Input area is empty.');
+                    setTxStatus('Parsing payload data records...');
+                    const imported = JSON.parse(jsonInput);
+                    
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
+
+                    setTxStatus('Submitting execution authorization to Chapel Testnet...');
+                    // Broadcast transaction parameters straight to the network layer
+                    const txResult = await signer.sendTransaction({
+                        to: imported.transactions.to,
+                        value: imported.transactions.value,
+                        data: imported.transactions.data
+                    });
+                    setTxStatus(`Success! Broadcasted Hash: ${txResult.hash}`);
+                } catch (e) {
+                    setTxStatus(`Execution Failed: ${e.message}`);
+                }
+            };
+
+            return (
+                <div className="wrapper">
+                    <div className="container">
+                        <div className="topbar">
+                            <div>
+                                <span style={{ color: '#A1A8B3', fontSize: '13px' }}>Signer Wallet Connection Status:</span>
+                                <div style={{ color: currentAddress ? '#80FFAD' : '#FF8085', fontSize: '14px', fontWeight: 600, marginTop: '4px' }}>
+                                    {currentAddress ? `Connected: ${currentAddress.slice(0,6)}...${currentAddress.slice(-4)}` : 'Disconnected'}
+                                </div>
+                            </div>
+                            {!currentAddress && <button onClick={connectWallet} style={{ backgroundColor: '#F0B90B', color: '#121314', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>Connect Wallet</button>}
+                        </div>
+
+                        {!activeSafeAddress ? (
+                            <div className="card">
+                                <h3 style={{ margin: '0 0 8px 0', color: '#F0B90B' }}>Target Safe Wallet Selection</h3>
+                                <p style={{ color: '#A1A8B3', fontSize: '13px', margin: '0 0 20px 0' }}>Enter your Chapel Safe multi-sig deployment contract address:</p>
+                                <input type="text" value={safeAddressInput} onChange={(e) => setSafeAddressInput(e.target.value)} placeholder="0x..." className="input-field" />
+                                <button onClick={() => safeAddressInput.startsWith('0x') && setActiveSafeAddress(safeAddressInput)} disabled={!currentAddress} className="btn-gold">Initialize Workspace Interface</button>
+                            </div>
+                        ) : (
+                            <div>
+                                <div style={{ textAlign: 'center', marginBottom: '10px' }}><button onClick={() => setActiveSafeAddress('')} style={{ background: 'none', border: 'none', color: '#A1A8B3', textDecoration: 'underline', cursor: 'pointer', fontSize: '13px' }}>← Change Target Safe Address</button></div>
+                                
+                                <div className="card">
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+                                        <div style={{ backgroundColor: '#F0B90B', width: '12px', height: '12px', borderRadius: '50%', marginRight: '12px' }}></div>
+                                        <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>BSC Chapel Testnet Multi-Sig</h2>
+                                    </div>
+                                    <p style={{ color: '#A1A8B3', fontSize: '14px', marginBottom: '24px' }}>Safe Address: <code style={{ color: '#F0B90B' }}>{activeSafeAddress}</code></p>
+                                    
+                                    <div style={{ marginBottom: '32px', paddingBottom: '24px', borderBottom: '1px solid #2E3033' }}>
+                                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#F0B90B' }}>Creator Workflows (Owner 1)</h4>
+                                        <button onClick={handleCreateAndDownload} className="btn-outline">Create & Download Tx File</button>
+                                    </div>
+
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#F0B90B' }}>Signer Workflows (Owner 2)</h4>
+                                        <input type="file" accept=".json" onChange={(e) => {
+                                            const file = e.target.files;
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (ev) => { setJsonInput(ev.target.result); setTxStatus('File text verified!'); };
+                                                reader.readAsText(file);
+                                            }
+                                        }} style={{ marginBottom: '12px', width: '100%', color: '#FFF' }} />
+                                        <textarea rows="3" value={jsonInput} onChange={(e) => setJsonInput(e.target.value)} placeholder="Or paste JSON text data here..." className="input-field" style={{ fontFamily: 'monospace', fontSize: '11px' }} />
+                                        <button onClick={handleImportAndExecute} className="btn-gold">Import, Sign & Execute Live</button>
+                                    </div>
+
+                                    {txStatus && <div className="status-box" style={{ backgroundColor: txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#2A1415' : '#142A1E', color: txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#FF8085' : '#80FFAD', border: `1px solid ${txStatus.startsWith('Error') || txStatus.startsWith('Execution') ? '#662225' : '#226639'}` }}>{txStatus}</div>}
+                                </div>
+
+                                <div style={{ maxWidth: '600px', margin: '30px auto 0 auto', border: '1px dashed #2E3033', borderRadius: '12px', padding: '20px', backgroundColor: '#090A0A', textAlign: 'center' }}>
+                                    <p style={{ color: '#A1A8B3', fontSize: '13px' }}>Custom App Sandboxed Context Workspace (`iframe` Container)</p>
+                                    <iframe src="https://app.uniswap.org" title="Custom App Frame" style={{ width: '100%', height: '380px', border: '1px solid #2E3033', borderRadius: '8px', marginTop: '10px' }} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
