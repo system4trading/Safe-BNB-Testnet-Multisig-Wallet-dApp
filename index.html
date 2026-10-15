@@ -29,7 +29,7 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
   <div><label for="safe">Safe address</label><input id="safe" placeholder="0x…" spellcheck="false"></div>
   <div><label for="chain">Expected chain ID</label><input id="chain" value="97" inputmode="numeric"></div>
  </div>
- <div class="actions"><button class="primary" id="connect">Connect wallet</button><button id="refresh">Read Safe state</button></div>
+ <div class="grid" style="margin-top:10px"><div><label for="walletProvider">Injected wallet provider</label><select id="walletProvider"><option value="">Detecting wallet providers…</option></select></div><div><label>Connection notes</label><div id="providerHelp" class="status small">Detecting injected providers. If opened as a file, your wallet extension may need “Allow access to file URLs”.</div></div></div><div class="actions"><button class="primary" id="connect">Connect wallet</button><button id="switchNetwork">Switch to BNB Testnet</button><button id="disconnect">Disconnect</button><button id="refresh">Read Safe state</button></div>
  <p id="walletState" class="muted">Wallet not connected.</p><div id="safeState" class="status">Safe state has not been checked.</div>
  <p class="small">BNB testnet chain ID is 97. This read-only check uses the connected wallet's RPC and checks common Safe view methods; it does not prove the address is an official or compatible Safe deployment.</p>
 </section>
@@ -40,7 +40,7 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
   <div><label for="appFile">Import local HTML file</label><input id="appFile" type="file" accept=".html,.htm,text/html"></div>
   <div><label for="appUrl">Or load an HTTPS dApp URL</label><input id="appUrl" placeholder="https://your-testnet-dapp.example"></div>
  </div>
- <div class="actions"><button id="loadUrl">Load URL</button><button id="unloadApp">Unload dApp</button><span id="appLabel" class="pill">No dApp loaded</span></div>
+ <div class="actions"><button id="loadUrl" class="primary">Load URL</button><button id="openUrlTab">Open URL in new tab</button><button id="unloadApp">Unload dApp</button><span id="appLabel" class="pill">No dApp loaded</span></div>
  <iframe id="appFrame" title="Sandboxed custom dApp" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe>
  <div class="callout small warning">Treat imported apps as untrusted. Inspect the source before use. Review every proposed destination, value, calldata byte and operation. DelegateCall (1) is especially sensitive.</div>
  <div id="appProtocolState" class="status" aria-live="polite">Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.</div>
@@ -49,6 +49,10 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
 
 <section class="panel">
  <div class="panel-head"><span class="step">3</span><div><h2>Transaction builder</h2><div class="muted small">Enter calldata directly or use your imported dApp's custom execution UI.</div></div></div>
+ <div class="callout small">Use a contract ABI to build calldata, or enter calldata manually. ABI parsing uses ethers.js from a CDN; if the CDN is unavailable, manual calldata remains available.</div>
+ <label for="abi">Contract ABI (JSON)</label><textarea id="abi" placeholder="Paste contract ABI JSON here"></textarea>
+ <div class="grid"><div><label for="abiFunction">Function</label><select id="abiFunction"><option value="">Load ABI to list functions</option></select></div><div><label for="abiArgs">Function arguments (JSON array)</label><input id="abiArgs" placeholder="["0x...", "100"]"></div></div>
+ <div class="actions"><button id="parseAbi">Parse ABI</button><button id="encodeAbi" class="primary">Encode function calldata</button></div>
  <div class="grid">
   <div><label for="to">Destination address</label><input id="to" placeholder="0x…" spellcheck="false"></div>
   <div><label for="value">Value (wei, integer)</label><input id="value" value="0" inputmode="numeric"></div>
@@ -72,25 +76,28 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
 </section>
 
 <section class="panel">
- <div class="panel-head"><span class="step">5</span><div><h2>Signing & execution status</h2><div class="muted small">Safe Protocol Kit integration is intentionally not enabled in this starter.</div></div></div>
+ <div class="panel-head"><span class="step">5</span><div><h2>Signature verification & execution</h2><div class="muted small">Cryptographic checks use the connected wallet, ethers.js and Safe contract view methods. Network access to the ethers CDN is required.</div></div></div>
  <div id="packageState" class="status">No package loaded.</div>
- <div class="actions"><button id="sign" class="primary" disabled>Sign Safe transaction</button><button id="execute" class="primary" disabled>Execute Safe transaction</button><button id="cancel" class="danger" disabled>Cancel on-chain</button><button id="abandon" disabled>Abandon locally</button></div>
- <p class="warning small">Do not treat JSON fields or a count of signatures as proof of authorization. A production signer must compute the Safe transaction hash, verify owner signatures, merge them in the required order, confirm threshold and nonce, then execute through a verified Safe-compatible adapter.</p>
+ <label for="signaturesJson">Imported owner signatures (JSON array: [{"owner":"0x…","signature":"0x…"}])</label><textarea id="signaturesJson" placeholder="Paste signatures collected from Safe owners here…"></textarea>
+ <div class="actions"><button id="sign" class="primary" disabled>Sign Safe transaction hash</button><button id="verifySignatures" disabled>Verify signatures & Safe state</button><button id="execute" class="primary" disabled>Execute verified transaction</button><button id="cancel" class="danger" disabled>Cancel on-chain</button><button id="abandon" disabled>Abandon locally</button></div>
+ <div id="securityState" class="status">Security gate closed. No signatures are trusted until the Safe hash, current nonce, owner set, threshold, and each signature are verified.</div>
+ <p class="warning small">JSON fields and signature counts are never authorization. Before execution, this workspace recomputes the Safe EIP-712 hash, compares it with the Safe contract’s own getTransactionHash result, recovers each EOA signer, rejects duplicate/non-owner signatures, sorts signatures by owner address, and rechecks nonce/threshold. Contract-based owners (EIP-1271), non-standard Safe versions and batch transactions are not supported by this minimal adapter and will be rejected or remain unverified.</p>
 </section>
 
 <section class="panel"><div class="panel-head"><span class="step">•</span><h2>Activity</h2></div><div id="log" class="status">Workspace ready. All package data remains in this browser unless you export or share it.</div></section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
 <script>
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
-const state = {provider:null,account:null,chainId:null,safeNonce:null,owners:[],threshold:null,pkg:null,importedApp:null,pendingRpc:new Map(),appRequestSeq:0};
+const state = {provider:null,providers:[],providerListeners:new WeakSet(),account:null,chainId:null,safeNonce:null,owners:[],threshold:null,pkg:null,importedApp:null,pendingRpc:new Map(),appRequestSeq:0,verified:null,abiInterface:null,abiFunctions:[],appLoadTimer:null};
 const SAFE_APPS = {REQUEST:"SAFE_APP_REQUEST",RESPONSE:"SAFE_APP_RESPONSE",READY:"SAFE_APP_READY",INIT:"SAFE_APP_INIT"};
 const log = message => $("log").textContent = `${new Date().toLocaleString()}\n${message}`;
 const validAddress = v => typeof v === "string" && /^0x[a-fA-F0-9]{40}$/.test(v);
 const validHex = v => typeof v === "string" && /^0x(?:[0-9a-fA-F]{2})*$/.test(v);
 const setPackageStatus = msg => $("packageState").textContent = msg;
-function refreshButtons(){const has=!!state.pkg;$("abandon").disabled=!has;/* Safe actions remain disabled until a verified adapter is configured. */}
+function refreshButtons(){const has=!!state.pkg;$("abandon").disabled=!has;$("sign").disabled=!has||!state.account;$("verifySignatures").disabled=!has;$("execute").disabled=!has||!state.verified||!state.verified.executable;$("cancel").disabled=true;}
 function getDraft(){
  const safeAddress=$("safe").value.trim(),to=$("to").value.trim(),value=$("value").value.trim(),data=$("data").value.trim(),chainId=$("chain").value.trim(),operation=Number($("operation").value),deadline=$("deadline").value;
  if(!validAddress(safeAddress))throw Error("Enter a valid Safe address.");
@@ -99,7 +106,7 @@ function getDraft(){
  if(!validHex(data))throw Error("Calldata must be 0x-prefixed, even-length hex.");
  if(!["0","1"].includes(String(operation)))throw Error("Invalid operation.");
  if(!/^\d+$/.test(chainId))throw Error("Invalid chain ID.");
- return {version:1,kind:"safe-transaction-package",chainId,safeAddress,nonce:state.safeNonce,transaction:{to,value,data,operation},signatures:[],createdAt:new Date().toISOString(),deadline:deadline?new Date(deadline).toISOString():null,status:"draft"};
+ return {version:1,kind:"safe-transaction-package",chainId,safeAddress,nonce:state.safeNonce,transaction:{to,value,data,operation,safeTxGas:"0",baseGas:"0",gasPrice:"0",gasToken:"0x0000000000000000000000000000000000000000",refundReceiver:"0x0000000000000000000000000000000000000000"},signatures:[],createdAt:new Date().toISOString(),deadline:deadline?new Date(deadline).toISOString():null,status:"draft"};
 }
 function updateDraftFields(pkg){
  $("safe").value=pkg.safeAddress||"";$("chain").value=String(pkg.chainId??"97");$("to").value=pkg.transaction?.to||"";
@@ -111,19 +118,19 @@ function validatePackage(pkg){
  !validAddress(pkg.transaction.to)||!/^\d+$/.test(String(pkg.chainId))||!/^\d+$/.test(String(pkg.nonce))||
  !/^\d+$/.test(String(pkg.transaction.value))||!validHex(pkg.transaction.data)||![0,1].includes(Number(pkg.transaction.operation))||
  !Array.isArray(pkg.signatures))throw Error("Invalid or unsupported package format.");
- if(pkg.signatures.length>100)throw Error("Too many signature entries.");
+ if(pkg.signatures.length>100)throw Error("Too many signature entries."); for(const sig of pkg.signatures){if(!sig||typeof sig!=="object"||!validAddress(sig.owner)||typeof sig.signature!=="string")throw Error("Each signature must include owner and signature fields.");}
  if(pkg.transaction.data.length>2_000_002)throw Error("Calldata exceeds the 1 MB limit.");
  return pkg;
 }
 function makePackage(){
  const pkg=getDraft();
  if(state.safeNonce===null)throw Error("Read Safe state first so the package uses the current on-chain nonce.");
- pkg.nonce=state.safeNonce;state.pkg=pkg;$("packageJson").value=JSON.stringify(pkg,null,2);
+ pkg.nonce=state.safeNonce;state.pkg=pkg;state.verified=null;$("packageJson").value=JSON.stringify(pkg,null,2);
  setPackageStatus(`Draft created.\nSafe: ${pkg.safeAddress}\nChain ID: ${pkg.chainId}\nNonce: ${pkg.nonce}\nSignatures: 0\nDraft only — not yet a Safe-compatible signed transaction.`);
  refreshButtons();log("Created transaction package JSON.");
 }
 function importPackage(){
- const pkg=validatePackage(JSON.parse($("packageJson").value));state.pkg=pkg;updateDraftFields(pkg);
+ const pkg=validatePackage(JSON.parse($("packageJson").value));state.pkg=pkg;state.verified=null;$("signaturesJson").value=JSON.stringify(pkg.signatures||[],null,2);updateDraftFields(pkg);
  $("packageJson").value=JSON.stringify(pkg,null,2);
  setPackageStatus(`Package imported.\nSafe: ${pkg.safeAddress}\nChain ID: ${pkg.chainId}\nNonce: ${pkg.nonce}\nSignature entries: ${pkg.signatures.length}\nImported signatures are untrusted until cryptographically verified.`);
  refreshButtons();log("Imported package. No signature has been trusted.");
@@ -134,13 +141,64 @@ function downloadText(text,name,type){
 function packageText(){const text=$("packageJson").value.trim();if(!text)throw Error("Create, import, or paste a package first.");validatePackage(JSON.parse(text));return text;}
 function utf8ToHex(text){const bytes=new TextEncoder().encode(text);return "0x"+Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");}
 function hexToUtf8(hex){if(!validHex(hex)||hex==="0x")throw Error("Enter non-empty, even-length 0x-prefixed hex.");const bytes=new Uint8Array((hex.length-2)/2);for(let i=0;i<bytes.length;i++)bytes[i]=parseInt(hex.slice(2+i*2,4+i*2),16);return new TextDecoder("utf-8",{fatal:true}).decode(bytes);}
-async function connectWallet(){
- if(!window.ethereum)throw Error("No EIP-1193 wallet detected.");state.provider=window.ethereum;
- const accounts=await state.provider.request({method:"eth_requestAccounts"}),chain=await state.provider.request({method:"eth_chainId"});
- state.account=accounts[0]||null;state.chainId=BigInt(chain).toString();
- $("walletState").textContent=`Connected: ${state.account||"none"} · chain ID ${state.chainId}`+(state.chainId!==$("chain").value.trim()?" · WRONG NETWORK":"");
- log("Wallet connected. Read Safe state before creating a package.");
+function providerName(p,i){
+ if(p?.isMetaMask)return "MetaMask";
+ if(p?.isRabby)return "Rabby";
+ if(p?.isCoinbaseWallet)return "Coinbase Wallet";
+ if(p?.isTrust)return "Trust Wallet";
+ if(p?.isBraveWallet)return "Brave Wallet";
+ return p?.providerInfo?.name||p?.walletInfo?.name||`Injected wallet ${i+1}`;
 }
+function discoverProviders(){
+ const eth=window.ethereum;let list=[];
+ if(eth?.providers&&Array.isArray(eth.providers))list=eth.providers;
+ else if(eth)list=[eth];
+ // Some extensions inject after DOM ready; preserve the active provider if still present.
+ state.providers=list.filter((p,i,a)=>p&&typeof p.request==="function"&&a.indexOf(p)===i);
+ const sel=$("walletProvider"),previous=sel.value;sel.innerHTML="";
+ if(!state.providers.length){const o=document.createElement("option");o.value="";o.textContent="No injected wallet detected";sel.appendChild(o);$("providerHelp").textContent=location.protocol==="file:"?"No injected wallet detected. Enable your extension’s access to file URLs, or serve this HTML from localhost/HTTPS and reload.":"No injected EIP-1193 provider detected. Unlock/install a wallet extension, then reload this page.";return;}
+ state.providers.forEach((p,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=providerName(p,i);sel.appendChild(o);});
+ const preferred=state.provider?state.providers.indexOf(state.provider):-1;sel.value=String(preferred>=0?preferred:(Number(previous)>=0&&Number(previous)<state.providers.length?Number(previous):0));
+ $("providerHelp").textContent=`Detected ${state.providers.length} injected provider(s). Choose one, then click Connect wallet. The host wallet and the dApp's Safe Apps SDK bridge are separate connections.`;
+ state.providers.forEach(p=>attachProviderListeners(p));
+}
+function selectedProvider(){
+ if(!state.providers.length)discoverProviders();const i=Number($("walletProvider").value);const p=state.providers[i];if(!p)throw Error("No injected wallet provider found. Enable the extension for this page and reload.");return p;
+}
+function attachProviderListeners(p){
+ if(!p||state.providerListeners.has(p)||typeof p.on!=="function")return;state.providerListeners.add(p);
+ p.on("accountsChanged",accounts=>{if(p!==state.provider)return;state.account=accounts?.[0]||null;state.verified=null;$("walletState").textContent=state.account?`Connected: ${state.account} · chain ID ${state.chainId??"unknown"}`:"Wallet account not connected. Click Connect wallet to reconnect.";refreshButtons();});
+ p.on("chainChanged",chain=>{if(p!==state.provider)return;try{state.chainId=BigInt(chain).toString();}catch{state.chainId=null;}state.safeNonce=null;state.verified=null;$("walletState").textContent=`Wallet chain changed: ${state.chainId??chain}. Re-read Safe state before proceeding.`;$("safeState").textContent="Chain changed; Safe state must be re-read.";refreshButtons();});
+ p.on("disconnect",()=>{if(p!==state.provider)return;state.account=null;state.chainId=null;state.safeNonce=null;state.verified=null;$("walletState").textContent="Wallet provider disconnected.";refreshButtons();});
+}
+async function connectWallet(){
+ const p=selectedProvider();state.provider=p;attachProviderListeners(p);
+ const accounts=await p.request({method:"eth_requestAccounts"});
+ const chain=await p.request({method:"eth_chainId"});
+ state.account=accounts?.[0]||null;state.chainId=BigInt(chain).toString();state.safeNonce=null;state.verified=null;
+ if(!state.account)throw Error("Wallet returned no accounts. Unlock it and approve account access.");
+ $("walletState").textContent=`Connected: ${state.account} · chain ID ${state.chainId}`+(state.chainId!==$("chain").value.trim()?" · WRONG NETWORK — click Switch to BNB Testnet":"");
+ refreshButtons();log(`Connected ${providerName(p,state.providers.indexOf(p))}. Chain ID ${state.chainId}.`);
+}
+async function switchToBnbTestnet(){
+ const p=state.provider||selectedProvider();state.provider=p;attachProviderListeners(p);
+ try{await p.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x61"}]});}
+ catch(e){if(e.code!==4902)throw e;await p.request({method:"wallet_addEthereumChain",params:[{chainId:"0x61",chainName:"BNB Smart Chain Testnet",nativeCurrency:{name:"tBNB",symbol:"tBNB",decimals:18},rpcUrls:["https://data-seed-prebsc-1-s1.bnbchain.org:8545/"],blockExplorerUrls:["https://testnet.bscscan.com"]}]});}
+ state.chainId=BigInt(await p.request({method:"eth_chainId"})).toString();const accounts=await p.request({method:"eth_accounts"});state.account=accounts?.[0]||state.account;state.safeNonce=null;state.verified=null;
+ $("walletState").textContent=`${state.account?`Connected: ${state.account} · `:""}chain ID ${state.chainId}`+(state.chainId!=="97"?" · switch not confirmed":" · BNB Testnet");$("safeState").textContent="Network changed; click Read Safe state to refresh the Safe context.";refreshButtons();log(`Wallet chain is now ${state.chainId}.`);
+}
+function disconnectWallet(){state.provider=null;state.account=null;state.chainId=null;state.safeNonce=null;state.owners=[];state.threshold=null;state.verified=null;$("walletState").textContent="Disconnected from the workspace. Browser wallets generally do not expose a programmatic permission-revoke method; revoke site access in the wallet if needed.";$("safeState").textContent="Wallet disconnected; Safe state cleared.";$("securityState").textContent="Security gate closed.";refreshButtons();log("Workspace disconnected from wallet. Wallet permissions are controlled by the wallet extension.");}
+function requireEthers(){if(!window.ethers)throw Error("ethers.js could not load from CDN. Check internet access or use manual calldata.");return window.ethers;}
+function parseAbi(){const ethers=requireEthers();const abi=JSON.parse($("abi").value);const iface=new ethers.Interface(abi);const funcs=iface.fragments.filter(f=>f.type==="function");if(!funcs.length)throw Error("ABI contains no functions.");state.abiInterface=iface;state.abiFunctions=funcs;const sel=$("abiFunction");sel.innerHTML="";funcs.forEach((f,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=`${f.name}(${f.inputs.map(x=>x.type).join(", ")})`;sel.appendChild(o);});log(`Parsed ABI: ${funcs.length} function(s). Select a function and provide arguments as a JSON array.`);}
+function encodeAbi(){if(!state.abiInterface)parseAbi();const f=state.abiFunctions[Number($("abiFunction").value)];if(!f)throw Error("Select an ABI function.");const args=JSON.parse($("abiArgs").value||"[]");if(!Array.isArray(args))throw Error("Function arguments must be a JSON array.");$("data").value=state.abiInterface.encodeFunctionData(f,args);log(`Encoded ${f.name} calldata. Review the destination, arguments and calldata before creating a package.`);}
+function safeTxParts(pkg){const t=pkg.transaction;return {to:t.to,value:String(t.value),data:t.data,operation:Number(t.operation),safeTxGas:String(t.safeTxGas??"0"),baseGas:String(t.baseGas??"0"),gasPrice:String(t.gasPrice??"0"),gasToken:t.gasToken||"0x0000000000000000000000000000000000000000",refundReceiver:t.refundReceiver||"0x0000000000000000000000000000000000000000",nonce:String(pkg.nonce)};}
+function typedSafeHash(ethers,pkg){const t=safeTxParts(pkg);const domain={chainId:BigInt(pkg.chainId),verifyingContract:pkg.safeAddress};const types={SafeTx:[{name:"to",type:"address"},{name:"value",type:"uint256"},{name:"data",type:"bytes"},{name:"operation",type:"uint8"},{name:"safeTxGas",type:"uint256"},{name:"baseGas",type:"uint256"},{name:"gasPrice",type:"uint256"},{name:"gasToken",type:"address"},{name:"refundReceiver",type:"address"},{name:"nonce",type:"uint256"}]};const value={to:t.to,value:BigInt(t.value),data:t.data,operation:t.operation,safeTxGas:BigInt(t.safeTxGas),baseGas:BigInt(t.baseGas),gasPrice:BigInt(t.gasPrice),gasToken:t.gasToken,refundReceiver:t.refundReceiver,nonce:BigInt(t.nonce)};return ethers.TypedDataEncoder.hash(domain,types,value);}
+function safeInterface(){return new (requireEthers().Interface)(["function nonce() view returns (uint256)","function getOwners() view returns (address[])","function getThreshold() view returns (uint256)","function getTransactionHash(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 _nonce) view returns (bytes32)","function VERSION() view returns (string)","function execTransaction(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,bytes signatures) returns (bool)"]);}
+async function liveSafeSnapshot(){if(!state.provider||!state.account)throw Error("Connect a wallet first.");const expected=String($("chain").value.trim()),actual=BigInt(await state.provider.request({method:"eth_chainId"})).toString();if(actual!==expected)throw Error(`Wrong network: expected chain ${expected}, wallet is on ${actual}.`);const safe=$("safe").value.trim();if(!validAddress(safe))throw Error("Enter a valid Safe address.");const code=await state.provider.request({method:"eth_getCode",params:[safe,"latest"]});if(!code||code==="0x")throw Error("Safe address has no contract code.");const iface=safeInterface();const call=async method=>{const data=iface.encodeFunctionData(method.name,method.args||[]);const raw=await state.provider.request({method:"eth_call",params:[{to:safe,data},"latest"]});return iface.decodeFunctionResult(method.name,raw);};const [nonceR,ownersR,thresholdR,versionR]=await Promise.all([call({name:"nonce"}),call({name:"getOwners"}),call({name:"getThreshold"}),call({name:"VERSION"})]);const owners=Array.from(ownersR[0],a=>String(a));const threshold=Number(thresholdR[0]);if(!owners.length||!Number.isInteger(threshold)||threshold<1||threshold>owners.length)throw Error("Safe owner/threshold values are invalid.");return {safe,nonce:BigInt(nonceR[0]).toString(),owners,threshold,version:String(versionR[0]),iface};}
+function signatureForHash(ethers,hash,sig){if(!/^0x[0-9a-fA-F]{130}$/.test(sig))throw Error("Only 65-byte ECDSA owner signatures are supported by this adapter.");let bytes=sig;const v=parseInt(sig.slice(-2),16);if(v===31||v===32){bytes=sig.slice(0,-2)+(v-4).toString(16).padStart(2,"0");return ethers.recoverAddress(ethers.hashMessage(ethers.getBytes(hash)),bytes);}if(v===27||v===28||v===0||v===1){if(v<2)bytes=sig.slice(0,-2)+(v+27).toString(16).padStart(2,"0");return ethers.recoverAddress(hash,bytes);}throw Error("Unsupported signature v value; EIP-1271/contract signatures are not supported here.");}
+async function signCurrentSafeHash(){const ethers=requireEthers();if(!state.pkg)throw Error("Create or import a package first.");const snap=await liveSafeSnapshot();if(snap.safe.toLowerCase()!==state.pkg.safeAddress.toLowerCase()||String(state.pkg.chainId)!==String($("chain").value.trim()))throw Error("Package Safe/chain does not match current workspace.");if(snap.nonce!==String(state.pkg.nonce))throw Error(`Stale nonce: package ${state.pkg.nonce}, on-chain ${snap.nonce}.`);if(!snap.owners.some(a=>a.toLowerCase()===state.account.toLowerCase()))throw Error("Connected wallet is not a current Safe owner.");const t=safeTxParts(state.pkg);const hash=typedSafeHash(ethers,state.pkg);const onchain=snap.iface.decodeFunctionResult("getTransactionHash",await state.provider.request({method:"eth_call",params:[{to:snap.safe,data:snap.iface.encodeFunctionData("getTransactionHash",[t.to,t.value,t.data,t.operation,t.safeTxGas,t.baseGas,t.gasPrice,t.gasToken,t.refundReceiver,t.nonce])},"latest"]}))[0];if(String(onchain).toLowerCase()!==hash.toLowerCase())throw Error(`Safe hash mismatch. Local ${hash}; contract ${onchain}. Refusing to sign.`);const raw=await state.provider.request({method:"personal_sign",params:[hash,state.account]});if(!/^0x[0-9a-fA-F]{130}$/.test(raw))throw Error("Wallet returned an unexpected signature format.");let v=parseInt(raw.slice(-2),16);if(v===0||v===1)v+=27;if(v!==27&&v!==28)throw Error("Wallet signature has unsupported recovery id.");const safeSig=raw.slice(0,-2)+(v+4).toString(16).padStart(2,"0");const entry={owner:state.account,signature:safeSig};let signatures=[];try{signatures=JSON.parse($("signaturesJson").value||"[]");if(!Array.isArray(signatures))signatures=[];}catch{signatures=[];}signatures=signatures.filter(x=>String(x.owner).toLowerCase()!==state.account.toLowerCase());signatures.push(entry);$("signaturesJson").value=JSON.stringify(signatures,null,2);state.pkg.signatures=signatures;$("packageJson").value=JSON.stringify(state.pkg,null,2);state.verified=null;refreshButtons();$("securityState").textContent=`Signed Safe transaction hash ${hash} with connected owner ${state.account}. Signature is stored but still must pass full verification.`;log(`Signed verified Safe transaction hash ${hash}.`);}
+async function verifySafeSignatures(){const ethers=requireEthers();if(!state.pkg)throw Error("Create or import a package first.");const snap=await liveSafeSnapshot();const pkg=validatePackage(JSON.parse($("packageJson").value));state.pkg=pkg;if(snap.safe.toLowerCase()!==pkg.safeAddress.toLowerCase())throw Error("Safe address mismatch.");if(String(pkg.chainId)!==String($("chain").value.trim()))throw Error("Chain ID mismatch.");if(snap.nonce!==String(pkg.nonce))throw Error(`Nonce mismatch: package ${pkg.nonce}, chain ${snap.nonce}.`);const hash=typedSafeHash(ethers,pkg);const t=safeTxParts(pkg);const onchain=snap.iface.decodeFunctionResult("getTransactionHash",await state.provider.request({method:"eth_call",params:[{to:snap.safe,data:snap.iface.encodeFunctionData("getTransactionHash",[t.to,t.value,t.data,t.operation,t.safeTxGas,t.baseGas,t.gasPrice,t.gasToken,t.refundReceiver,t.nonce])},"latest"]}))[0];if(String(onchain).toLowerCase()!==hash.toLowerCase())throw Error(`Safe transaction hash mismatch: local ${hash}, contract ${onchain}.`);let sigs=JSON.parse($("signaturesJson").value||JSON.stringify(pkg.signatures||[]));if(!Array.isArray(sigs))throw Error("Signatures must be a JSON array.");const seen=new Set(),verified=[];for(const entry of sigs){if(!entry||!validAddress(entry.owner)||typeof entry.signature!=="string")throw Error("Malformed signature entry.");const owner=entry.owner.toLowerCase();if(seen.has(owner))throw Error(`Duplicate signature for ${entry.owner}.`);seen.add(owner);if(!snap.owners.some(a=>a.toLowerCase()===owner))throw Error(`Signer is not a current Safe owner: ${entry.owner}`);const recovered=signatureForHash(ethers,hash,entry.signature);if(recovered.toLowerCase()!==owner)throw Error(`Signature recovery mismatch for ${entry.owner}; recovered ${recovered}.`);verified.push({owner:entry.owner,signature:entry.signature});}verified.sort((a,b)=>a.owner.toLowerCase().localeCompare(b.owner.toLowerCase()));const executable=verified.length>=snap.threshold;state.pkg.signatures=verified;$("signaturesJson").value=JSON.stringify(verified,null,2);$("packageJson").value=JSON.stringify(state.pkg,null,2);state.verified={hash,signatures:verified,threshold:snap.threshold,nonce:snap.nonce,owners:snap.owners,executable,version:snap.version};$("securityState").textContent=`VERIFIED Safe-compatible interface (VERSION ${snap.version})\nSafe transaction hash: ${hash}\nOn-chain nonce: ${snap.nonce}\nThreshold: ${snap.threshold}\nCryptographically valid unique owner signatures: ${verified.length}\nSorted signature owners:\n${verified.map(x=>x.owner).join("\n")||"(none)"}\n${executable?"Threshold met. Execution can be attempted after final review.":`Threshold NOT met. Need ${snap.threshold-verified.length} more valid owner signature(s).`}\nNote: only EOA 65-byte signatures are supported; contract owners/EIP-1271 are not.`;refreshButtons();log(`Signature verification complete: ${verified.length}/${snap.threshold} valid owner signatures. Hash ${hash}.`);}
+async function executeVerified(){if(!state.verified||!state.verified.executable)throw Error("Verify signatures and meet threshold first.");const ethers=requireEthers();if(typedSafeHash(ethers,state.pkg).toLowerCase()!==state.verified.hash.toLowerCase())throw Error("Transaction contents changed after verification. Verify again.");const snap=await liveSafeSnapshot();if(snap.nonce!==state.verified.nonce)throw Error("Nonce changed after verification. Verify again.");if(snap.threshold!==state.verified.threshold||snap.owners.join().toLowerCase()!==state.verified.owners.join().toLowerCase())throw Error("Safe owner configuration changed. Verify again.");if(!snap.owners.some(a=>a.toLowerCase()===state.account.toLowerCase()))throw Error("Connected wallet must be a current Safe owner and execution relayer.");const t=safeTxParts(state.pkg);const packed="0x"+state.verified.signatures.map(x=>x.signature.slice(2)).join("");const iface=snap.iface;const data=iface.encodeFunctionData("execTransaction",[t.to,t.value,t.data,t.operation,t.safeTxGas,t.baseGas,t.gasPrice,t.gasToken,t.refundReceiver,packed]);const txHash=await state.provider.request({method:"eth_sendTransaction",params:[{from:state.account,to:snap.safe,data}]});$("securityState").textContent+=`\nExecution transaction submitted: ${txHash}\nWait for receipt and confirm status on the block explorer.`;state.verified=null;refreshButtons();log(`Safe execTransaction submitted through checked Safe interface. Tx hash: ${txHash}`);}
 function word(hex){return BigInt(hex).toString();}
 function decodeUint(hex){return BigInt(hex).toString();}
 async function refreshSafeState(){
@@ -161,12 +219,13 @@ async function refreshSafeState(){
  log("Read Safe view methods. Confirm address and owners independently before proceeding.");
 }
 function loadAppHtml(html,label){
- unloadApp();$("appFrame").srcdoc=html;state.importedApp={label};$("appLabel").textContent=label;$("appProtocolState").textContent="Local dApp loaded. Waiting for Safe Apps SDK handshake or safe-workspace/v2 HELLO.";log(`Loaded sandboxed local dApp: ${label}`);
+ unloadApp();$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc=html;state.importedApp={label,kind:"local"};state.appHandshake=false;$("appLabel").textContent=label;$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Waiting for Safe Apps SDK handshake or safe-workspace/v2 HELLO.";log(`Loaded sandboxed local dApp: ${label}`);
+ if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===label&&!state.appHandshake){$("appProtocolState").textContent="The local HTML rendered, but no Safe Apps SDK handshake was received. Confirm the app actually uses the Safe Apps SDK host protocol, that its JavaScript loaded, and that it is not relying on relative JS/CSS files or window.ethereum injection. Uploading one HTML file does not include sibling assets; use a self-contained HTML or a deployed HTTPS app URL.";}},8000);
 }
-function unloadApp(){$("appFrame").srcdoc="";$("appFrame").src="about:blank";state.importedApp=null;$("appLabel").textContent="No dApp loaded";$("appProtocolState").textContent="Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.";}
+function unloadApp(){if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}state.appHandshake=false;$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc="";$("appFrame").src="about:blank";state.importedApp=null;$("appLabel").textContent="No dApp loaded";$("appProtocolState").textContent="Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.";}
 function appContext(){
  const safeAddress=$("safe").value.trim();
- return {safeAddress:validAddress(safeAddress)?safeAddress:null,chainId:String($("chain").value.trim()||"97"),owners:state.owners.slice(),threshold:state.threshold,nonce:state.safeNonce,connectedAddress:state.account,readOnly:true,transactionRequestsRequireManualReview:true};
+ return {safeAddress:validAddress(safeAddress)?safeAddress:null,chainId:String(state.chainId||$("chain").value.trim()||"97"),owners:state.owners.slice(),threshold:state.threshold,nonce:state.safeNonce,connectedAddress:state.account,readOnly:true,transactionRequestsRequireManualReview:true};
 }
 function appReply(requestId,result,error){
  const frame=$("appFrame");if(!frame.contentWindow)return;
@@ -180,7 +239,7 @@ function stageAppTransaction(t,requestId,sourceLabel="dApp"){
 }
 function safeAppsInit(){
  const ctx=appContext();
- $("appFrame").contentWindow.postMessage({type:SAFE_APPS.INIT,data:{safe:{safeAddress:ctx.safeAddress,chainId:Number(ctx.chainId)},sdk:{version:"1.0.0"},workspace:{protocol:"safe-workspace/v2",owners:ctx.owners,threshold:ctx.threshold,nonce:ctx.nonce,readOnly:true}}},"*");
+ $("appFrame").contentWindow.postMessage({type:SAFE_APPS.INIT,data:{safe:{safeAddress:ctx.safeAddress,chainId:Number(ctx.chainId),owners:ctx.owners,threshold:ctx.threshold,nonce:ctx.nonce},sdk:{version:"1.0.0"},workspace:{protocol:"safe-workspace/v2",owners:ctx.owners,threshold:ctx.threshold,nonce:ctx.nonce,readOnly:true}}},"*");
 }
 function safeAppsError(id,message,code=-32000){$("appFrame").contentWindow.postMessage({type:SAFE_APPS.RESPONSE,data:{id,success:false,error:{code,message}}},"*");}
 function safeAppsSuccess(id,data){$("appFrame").contentWindow.postMessage({type:SAFE_APPS.RESPONSE,data:{id,success:true,data}},"*");}
@@ -220,12 +279,13 @@ async function handleSafeAppsRequest(data){
 window.addEventListener("message",event=>{
  if(event.source!==$("appFrame").contentWindow)return;const m=event.data;
  if(!m||typeof m!=="object")return;
- if(m.type===SAFE_APPS.READY){safeAppsInit();$("appProtocolState").textContent="Safe Apps SDK handshake received; sent SAFE_APP_INIT. Read-only methods available; signing/execution disabled.";return;}
+ if(m.type===SAFE_APPS.READY){state.appHandshake=true;if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}safeAppsInit();$("appProtocolState").textContent="Safe Apps SDK handshake received; sent SAFE_APP_INIT. Read-only methods available; signing/execution disabled.";return;}
  if(m.type===SAFE_APPS.REQUEST){handleSafeAppsRequest(m.data);return;}
  if(m.protocol==="safe-workspace/v1"&&m.type==="REQUEST_TRANSACTION"){
   try{stageAppTransaction(m.transaction,m.requestId,"safe-workspace/v1");}catch(e){log("Rejected custom dApp request: "+e.message);}return;
  }
  if(m.protocol==="safe-workspace/v2"){
+  state.appHandshake=true;if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}
   const id=m.requestId;
   try{
    if(m.type==="HELLO"){appReply(id,{protocol:"safe-workspace/v2",version:2,host:"Safe Transaction Workspace",capabilities:["GET_CONTEXT","REQUEST_TRANSACTION","REQUEST_TRANSACTIONS","PING"],signing:false,execution:false});$("appProtocolState").textContent="safe-workspace/v2 handshake completed.";return;}
@@ -242,10 +302,27 @@ window.addEventListener("message",event=>{
   }catch(e){appReply(id,null,{code:-32602,message:e.message});log("Rejected v2 app request: "+e.message);}
  }
 });
-$("appFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2_000_000){log("Rejected local dApp: maximum file size is 2 MB.");return;}try{loadAppHtml(await f.text(),f.name);}catch(err){log("Could not load app: "+err.message);}});
-$("loadUrl").addEventListener("click",()=>{try{const u=new URL($("appUrl").value.trim());if(u.protocol!=="https:")throw Error("Only HTTPS URLs are allowed.");unloadApp();$("appFrame").src=u.href;state.importedApp={label:u.href};$("appLabel").textContent=u.hostname;$("appProtocolState").textContent="Remote dApp loaded. Waiting for Safe Apps SDK handshake or safe-workspace/v2 HELLO.";log("Loaded remote dApp in sandbox. Safe Apps SDK read-only host protocol and safe-workspace/v2 are enabled.");}catch(e){log("Could not load URL: "+e.message);}});
+$("appFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2_000_000){log("Rejected local dApp: maximum file size is 2 MB.");$("appProtocolState").textContent="Upload rejected: maximum file size is 2 MB.";return;}try{const html=await f.text();if(!/<html[\s>]/i.test(html)&&!/<body[\s>]/i.test(html))throw Error("File does not look like an HTML document.");loadAppHtml(html,f.name);$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Waiting for SAFE_APP_READY or safe-workspace/v2 HELLO. External scripts still require network access.";}catch(err){$("appProtocolState").textContent="Could not load local file: "+err.message;log("Could not load app: "+err.message);}});
+function loadRemoteUrl(){try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter the full dApp URL.");const u=new URL(raw);const localHttp=(u.protocol==="http:"&&(u.hostname==="localhost"||u.hostname==="127.0.0.1"||u.hostname==="[::1]"));if(u.protocol!=="https:"&&!localHttp)throw Error("Use an HTTPS URL (HTTP is allowed only for localhost development). ");unloadApp();const frame=$("appFrame");frame.removeAttribute("srcdoc");frame.setAttribute("sandbox",u.origin!==location.origin?"allow-scripts allow-forms allow-same-origin":"allow-scripts allow-forms");frame.src=u.href;state.importedApp={label:u.href,kind:"url"};$("appLabel").textContent=u.hostname;$("appProtocolState").textContent="Navigating to URL. The browser may block embedding if the site sends X-Frame-Options or restrictive Content-Security-Policy frame-ancestors headers. Waiting for Safe Apps SDK handshake…";log("Navigating iframe to "+u.href);
+ if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===u.href&&!state.appHandshake){$("appProtocolState").textContent="The iframe navigated but no Safe Apps handshake was received. Possible causes: X-Frame-Options/CSP frame-ancestors blocking, app is not a Safe Apps SDK app, a JavaScript/CDN error, or an origin/bridge mismatch. This browser-only page cannot bypass a site's anti-iframe policy. Try the site's embeddable app URL, or download its HTML bundle and use Local upload.";}},8000);
+ }catch(e){$("appProtocolState").textContent="Could not load URL: "+e.message;log("Could not load URL: "+e.message);}}
+$("loadUrl").addEventListener("click",loadRemoteUrl);
+$("appUrl").addEventListener("keydown",e=>{if(e.key==="Enter")loadRemoteUrl();});
+$("openUrlTab").addEventListener("click",()=>{try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter a URL first.");const u=new URL(raw);if(!["https:","http:"].includes(u.protocol))throw Error("Only web URLs can be opened.");window.open(u.href,"_blank","noopener,noreferrer");log("Opened URL in a separate tab for diagnostics. This does not connect that tab to the Safe Apps bridge.");}catch(e){log("Could not open URL: "+e.message);}});
 $("unloadApp").addEventListener("click",unloadApp);
-$("connect").addEventListener("click",()=>connectWallet().catch(e=>log("Connect failed: "+e.message)));
+$("appFrame").addEventListener("load",()=>{if(state.importedApp){$("appProtocolState").textContent="Iframe navigation completed. Waiting for SAFE_APP_READY or safe-workspace/v2 HELLO. Safe Apps dApps use the SDK bridge; they do not automatically receive the host tab's window.ethereum.";}});
+$("appFrame").addEventListener("error",()=>{$("appProtocolState").textContent="Browser failed to load the dApp URL. Check URL/network access and whether the site permits iframe embedding.";});
+function initWalletDetection(){discoverProviders();if(window.ethereum?.on)window.ethereum.on("ethereum#initialized",discoverProviders);}
+window.addEventListener("ethereum#initialized",initWalletDetection,{once:true});
+window.addEventListener("load",initWalletDetection);
+$("connect").addEventListener("click",()=>connectWallet().catch(e=>{$("walletState").textContent="Connect failed: "+e.message;$("providerHelp").textContent="Connection failed. Check that the wallet is unlocked, this page is allowed by the extension, and the selected provider is available.";log("Connect failed: "+e.message);}));
+$("switchNetwork").addEventListener("click",()=>switchToBnbTestnet().catch(e=>{ $("walletState").textContent="Network switch failed: "+e.message;log("Network switch failed: "+e.message);}));
+$("disconnect").addEventListener("click",disconnectWallet);
+$("parseAbi").addEventListener("click",()=>{try{parseAbi();}catch(e){log("ABI parse failed: "+e.message);}});
+$("encodeAbi").addEventListener("click",()=>{try{encodeAbi();}catch(e){log("ABI encoding failed: "+e.message);}});
+$("sign").addEventListener("click",()=>signCurrentSafeHash().catch(e=>{ $("securityState").textContent="Signing refused: "+e.message;log("Signing refused: "+e.message);}));
+$("verifySignatures").addEventListener("click",()=>verifySafeSignatures().catch(e=>{state.verified=null;refreshButtons();$("securityState").textContent="VERIFICATION FAILED — execution disabled. "+e.message;log("Signature verification failed: "+e.message);}));
+$("execute").addEventListener("click",()=>executeVerified().catch(e=>{state.verified=null;refreshButtons();$("securityState").textContent="Execution refused: "+e.message;log("Execution refused: "+e.message);}));
 $("refresh").addEventListener("click",()=>refreshSafeState().catch(e=>{$("safeState").textContent="Safe check failed: "+e.message;log("Safe check failed: "+e.message);}));
 $("makePackage").addEventListener("click",()=>{try{makePackage();}catch(e){log(e.message);}});
 $("importPackage").addEventListener("click",()=>{try{importPackage();}catch(e){log("Import failed: "+e.message);}});
@@ -255,8 +332,9 @@ $("encodeHex").addEventListener("click",()=>{try{$("packageHex").value=utf8ToHex
 $("decodeHex").addEventListener("click",()=>{try{$("packageJson").value=hexToUtf8($("packageHex").value.trim());validatePackage(JSON.parse($("packageJson").value));log("Decoded HEX to JSON. Click Validate & import JSON to load it.");}catch(e){log("HEX decode failed: "+e.message);}});
 $("copyHex").addEventListener("click",async()=>{try{const h=$("packageHex").value.trim();if(!validHex(h))throw Error("Encode or enter valid HEX first.");await navigator.clipboard.writeText(h);log("Transport HEX copied.");}catch(e){log("Copy failed: "+e.message);}});
 $("downloadHex").addEventListener("click",()=>{try{const h=$("packageHex").value.trim();if(!validHex(h))throw Error("Encode or enter valid HEX first.");downloadText(h,"safe-transaction-package.hex.txt","text/plain");log("Downloaded transport HEX.");}catch(e){log(e.message);}});
-$("saveDraft").addEventListener("click",()=>{try{if(!state.pkg)throw Error("Create or import a package first.");const d=getDraft();if(d.safeAddress.toLowerCase()!==state.pkg.safeAddress.toLowerCase()||String(d.chainId)!==String(state.pkg.chainId))throw Error("Safe address and chain ID cannot be changed on an existing package.");if(Number(state.pkg.nonce)!==state.safeNonce&&state.safeNonce!==null)log("Warning: current chain nonce differs from the package nonce; re-check before signing.");state.pkg={...state.pkg,transaction:d.transaction,signatures:[]};$("packageJson").value=JSON.stringify(state.pkg,null,2);$("packageHex").value="";setPackageStatus("Transaction fields updated. Existing signatures cleared because transaction contents changed.");log("Updated draft; signatures were cleared.");}catch(e){log(e.message);}});
+$("saveDraft").addEventListener("click",()=>{try{if(!state.pkg)throw Error("Create or import a package first.");const d=getDraft();if(d.safeAddress.toLowerCase()!==state.pkg.safeAddress.toLowerCase()||String(d.chainId)!==String(state.pkg.chainId))throw Error("Safe address and chain ID cannot be changed on an existing package.");if(String(state.pkg.nonce)!==String(state.safeNonce)&&state.safeNonce!==null)log("Warning: current chain nonce differs from the package nonce; re-check before signing.");state.pkg={...state.pkg,transaction:d.transaction,signatures:[]};state.verified=null;$("signaturesJson").value="[]";$("packageJson").value=JSON.stringify(state.pkg,null,2);$("packageHex").value="";setPackageStatus("Transaction fields updated. Existing signatures cleared because transaction contents changed.");log("Updated draft; signatures were cleared.");}catch(e){log(e.message);}});
 $("abandon").addEventListener("click",()=>{if(!state.pkg)return;state.pkg.status="abandoned-locally";$("packageJson").value=JSON.stringify(state.pkg,null,2);setPackageStatus("Marked abandoned locally. Nothing was sent to the blockchain. Shared signatures may remain usable while the nonce is current.");refreshButtons();log("Package marked abandoned locally.");});
+["packageJson","signaturesJson","safe","chain","to","value","data","operation"].forEach(id=>$(id).addEventListener("input",()=>{if(state.verified){state.verified=null;$("securityState").textContent="Inputs changed after verification. Verify the package and signatures again before execution.";refreshButtons();}}));
 refreshButtons();
 })();
 </script>
