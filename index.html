@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -12,7 +13,7 @@ main{max-width:1120px;margin:auto;padding:26px 16px 64px}header{display:flex;ali
 h1{font-size:28px;line-height:1.15;margin:0 0 8px}h2{font-size:17px;margin:0 0 8px}h3{font-size:14px;margin:0 0 8px}.muted,p{color:var(--muted)}p{margin:7px 0 13px}.eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
 .panel{background:linear-gradient(145deg,#171b21,#12151a);border:1px solid var(--line);border-radius:15px;padding:18px;margin:16px 0;box-shadow:0 8px 26px #0002}.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}.step{display:grid;place-items:center;width:27px;height:27px;border:1px solid #65521a;border-radius:8px;color:var(--gold);font-weight:800}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}label{display:block;color:var(--muted);font-size:12px;margin:10px 0 5px}
-input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px;font:inherit;min-width:0}input:focus,textarea:focus,select:focus{outline:1px solid var(--gold);border-color:var(--gold)}textarea{min-height:110px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}button{border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:700;background:#252b33;color:var(--text)}button:hover:not(:disabled){filter:brightness(1.12)}button.primary{background:var(--gold);color:#151515;border-color:var(--gold)}button:disabled{opacity:.4;cursor:not-allowed}.danger{border-color:#7c3e43;color:#ffaaaa}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.status{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0c0f13;white-space:pre-wrap;overflow-wrap:anywhere}.warning{color:#ffd875}.good{color:var(--green)}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 9px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}iframe{width:100%;height:440px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:12px}.small{font-size:12px}.split{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.callout{border-left:3px solid var(--gold);padding:10px 12px;background:#f0b90b0b;color:#d9dce1;border-radius:0 8px 8px 0}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.hidden{display:none!important}
+input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px;font:inherit;min-width:0}input:focus,textarea:focus,select:focus{outline:1px solid var(--gold);border-color:var(--gold)}textarea{min-height:110px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}button{border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:700;background:#252b33;color:var(--text)}button:hover:not(:disabled){filter:brightness(1.12)}button.primary{background:var(--gold);color:#151515;border-color:var(--gold)}button:disabled{opacity:.4;cursor:not-allowed}.danger{border-color:#7c3e43;color:#ffaaaa}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.status{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0c0f13;white-space:pre-wrap;overflow-wrap:anywhere}.warning{color:#ffd875}.good{color:var(--green)}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 9px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}iframe{width:100%;height:440px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:12px}.small{font-size:12px}.split{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.callout{border-left:3px solid var(--gold);padding:10px 12px;background:#f0b90b0b;color:#d9dce1;border-radius:0 8px 8px 0}.mode-banner{border-color:#65521a;background:#17160f}.mode-banner h2{color:var(--gold)}.mode-banner p:last-child{margin-bottom:0}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.hidden{display:none!important}
 @media(max-width:680px){.grid,.grid.three{grid-template-columns:1fr}main{padding:20px 12px 44px}h1{font-size:24px}.panel{padding:14px}}
 </style>
 </head>
@@ -22,6 +23,13 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
  <div><div class="eyebrow">Local-first · No database</div><h1>Safe Transaction Workspace</h1><p>BNB Smart Chain Testnet · Build, review, encode and exchange transaction packages offline.</p></div>
  <span class="pill"><span class="dot"></span> Browser-only workspace</span>
 </header>
+
+<section class="panel mode-banner" role="status" aria-live="polite">
+ <h2>Mode 1 — Standalone workspace</h2>
+ <p>This page is running directly in your browser, outside the Safe interface. You can connect an injected wallet, switch to BNB Smart Chain Testnet, read a Safe contract's on-chain state, build calldata, and prepare transaction packages.</p>
+ <p><strong>Safe Apps host context is unavailable in standalone mode.</strong> The Safe interface does not supply a Safe address, owners, threshold, or nonce to this page. Enter the Safe address yourself and use <em>Read Safe state</em> to query it through your connected wallet before creating or signing a package.</p>
+ <p class="small">A connected browser wallet is not the same thing as a Safe Apps host connection. Safe Apps-only dApps loaded in the iframe may not work here. This workspace will not fabricate a Safe Apps SDK initialization message or pretend to be the official Safe interface.</p>
+</section>
 
 <section class="panel">
  <div class="panel-head"><span class="step">1</span><div><h2>Safe & wallet</h2><div class="muted small">Read-only connection checks. No server account or database required.</div></div></div>
@@ -43,8 +51,8 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
  <div class="actions"><button id="loadUrl" class="primary">Load URL</button><button id="openUrlTab">Open URL in new tab</button><button id="unloadApp">Unload dApp</button><span id="appLabel" class="pill">No dApp loaded</span></div>
  <iframe id="appFrame" title="Sandboxed custom dApp" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe>
  <div class="callout small warning">Treat imported apps as untrusted. Inspect the source before use. Review every proposed destination, value, calldata byte and operation. DelegateCall (1) is especially sensitive.</div>
- <div id="appProtocolState" class="status" aria-live="polite">Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.</div>
- <details><summary>Host protocol support</summary><p class="small">The host recognizes the Safe Apps SDK message envelope (<code>SAFE_APP_READY</code>, <code>SAFE_APP_REQUEST</code>, <code>SAFE_APP_RESPONSE</code>) and safe-workspace/v2 messages (<code>HELLO</code>, <code>GET_CONTEXT</code>, <code>REQUEST_TRANSACTION</code>, <code>REQUEST_TRANSACTIONS</code>). Read-only context and selected EIP-1193 reads are supported. Transaction requests are staged for manual review only; no Safe transaction hash is fabricated and no signing/execution is performed.</p><p class="small">v2 example: <code>window.parent.postMessage({protocol:"safe-workspace/v2",type:"REQUEST_TRANSACTION",requestId:"req-1",transaction:{to:"0x…",value:"0",data:"0x",operation:0}},"*")</code>. Replies use <code>safe-workspace/v2</code> with type <code>RESPONSE</code>, the same requestId, and either <code>result</code> or <code>error</code>.</p></details>
+ <div id="appProtocolState" class="status" aria-live="polite">Standalone mode active. Safe Apps host context and iframe bridge are unavailable.</div>
+ <details><summary>Standalone iframe limitations</summary><p class="small">This standalone page does not implement the Safe Apps host protocol. It will not send <code>SAFE_APP_INIT</code>, provide Safe context to iframe apps, or accept iframe requests as though it were the official Safe interface. If a dApp requires the Safe Apps SDK, open it inside a real, compatible Safe interface. The workspace's own wallet connection, on-chain Safe reads, ABI encoder, package builder, signature verification, and execution controls remain separate from iframe hosting.</p></details>
 </section>
 
 <section class="panel">
@@ -219,10 +227,10 @@ async function refreshSafeState(){
  log("Read Safe view methods. Confirm address and owners independently before proceeding.");
 }
 function loadAppHtml(html,label){
- unloadApp();$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc=html;state.importedApp={label,kind:"local"};state.appHandshake=false;$("appLabel").textContent=label;$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Waiting for Safe Apps SDK handshake or safe-workspace/v2 HELLO.";log(`Loaded sandboxed local dApp: ${label}`);
- if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===label&&!state.appHandshake){$("appProtocolState").textContent="The local HTML rendered, but no Safe Apps SDK handshake was received. Confirm the app actually uses the Safe Apps SDK host protocol, that its JavaScript loaded, and that it is not relying on relative JS/CSS files or window.ethereum injection. Uploading one HTML file does not include sibling assets; use a self-contained HTML or a deployed HTTPS app URL.";}},8000);
+ unloadApp();$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc=html;state.importedApp={label,kind:"local"};state.appHandshake=false;$("appLabel").textContent=label;$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Standalone mode does not provide Safe Apps host context or an iframe bridge.";log(`Loaded sandboxed local dApp: ${label}`);
+ if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===label&&!state.appHandshake){$("appProtocolState").textContent="The local HTML rendered, but standalone mode does not provide Safe Apps host context or an iframe bridge. The dApp may require the official Safe interface, relative JS/CSS files, or injected wallet access. Uploading one HTML file does not include sibling assets; use a self-contained HTML or a deployed HTTPS app URL.";}},8000);
 }
-function unloadApp(){if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}state.appHandshake=false;$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc="";$("appFrame").src="about:blank";state.importedApp=null;$("appLabel").textContent="No dApp loaded";$("appProtocolState").textContent="Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.";}
+function unloadApp(){if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}state.appHandshake=false;$("appFrame").setAttribute("sandbox","allow-scripts allow-forms");$("appFrame").srcdoc="";$("appFrame").src="about:blank";state.importedApp=null;$("appLabel").textContent="No dApp loaded";$("appProtocolState").textContent="Standalone mode active. Safe Apps host context and iframe bridge are unavailable.";}
 function appContext(){
  const safeAddress=$("safe").value.trim();
  return {safeAddress:validAddress(safeAddress)?safeAddress:null,chainId:String(state.chainId||$("chain").value.trim()||"97"),owners:state.owners.slice(),threshold:state.threshold,nonce:state.safeNonce,connectedAddress:state.account,readOnly:true,transactionRequestsRequireManualReview:true};
@@ -277,40 +285,44 @@ async function handleSafeAppsRequest(data){
  }catch(e){safeAppsError(id,e.message||"Request failed",e.code||-32000);}
 }
 window.addEventListener("message",event=>{
- if(event.source!==$("appFrame").contentWindow)return;const m=event.data;
+ if(event.source!==$("appFrame").contentWindow)return;
+ const m=event.data;
  if(!m||typeof m!=="object")return;
- if(m.type===SAFE_APPS.READY){state.appHandshake=true;if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}safeAppsInit();$("appProtocolState").textContent="Safe Apps SDK handshake received; sent SAFE_APP_INIT. Read-only methods available; signing/execution disabled.";return;}
- if(m.type===SAFE_APPS.REQUEST){handleSafeAppsRequest(m.data);return;}
- if(m.protocol==="safe-workspace/v1"&&m.type==="REQUEST_TRANSACTION"){
-  try{stageAppTransaction(m.transaction,m.requestId,"safe-workspace/v1");}catch(e){log("Rejected custom dApp request: "+e.message);}return;
+ // Mode 1 is a standalone page, not a Safe Apps host. Never fabricate SAFE_APP_INIT
+ // or return Safe-specific context to an iframe. Report the limitation explicitly.
+ if(m.type===SAFE_APPS.READY){
+  state.appHandshake=false;
+  if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}
+  $("appProtocolState").textContent="Standalone mode: this page is not a Safe Apps host. Safe-specific app context is unavailable. Use this workspace's own wallet connection and transaction builder, or open the dApp inside a compatible Safe interface.";
+  log("Safe Apps initialization skipped: standalone mode.");
+  return;
  }
- if(m.protocol==="safe-workspace/v2"){
-  state.appHandshake=true;if(state.appLoadTimer){clearTimeout(state.appLoadTimer);state.appLoadTimer=null;}
+ if(m.type===SAFE_APPS.REQUEST){
+  const id=m.data?.id;
+  if(id!==undefined){
+   try{$("appFrame").contentWindow.postMessage({type:SAFE_APPS.RESPONSE,data:{id,success:false,error:{code:-32004,message:"Safe Apps SDK requests are unavailable in standalone mode. Open this dApp inside a compatible Safe interface."}}},"*");}catch{}
+  }
+  $("appProtocolState").textContent="An iframe requested the Safe Apps host API, which is unavailable in standalone mode.";
+  return;
+ }
+ if(m.protocol==="safe-workspace/v1"||m.protocol==="safe-workspace/v2"){
   const id=m.requestId;
-  try{
-   if(m.type==="HELLO"){appReply(id,{protocol:"safe-workspace/v2",version:2,host:"Safe Transaction Workspace",capabilities:["GET_CONTEXT","REQUEST_TRANSACTION","REQUEST_TRANSACTIONS","PING"],signing:false,execution:false});$("appProtocolState").textContent="safe-workspace/v2 handshake completed.";return;}
-   if(m.type==="GET_CONTEXT"){appReply(id,appContext());return;}
-   if(m.type==="REQUEST_TRANSACTION"){stageAppTransaction(m.transaction,id,"safe-workspace/v2");appReply(id,{staged:true,requiresManualPackageCreation:true,signing:false,execution:false});return;}
-   if(m.type==="REQUEST_TRANSACTIONS"){
-    if(!Array.isArray(m.transactions)||m.transactions.length<1||m.transactions.length>25)throw Error("transactions must contain between 1 and 25 items.");
-    m.transactions.forEach(t=>{if(!t||!validAddress(t.to)||!/^[0-9]+$/.test(String(t.value??"0"))||!validHex(t.data??"0x")||![0,1].includes(Number(t.operation??0)))throw Error("One or more transactions are malformed.");});
-    if(m.transactions.length!==1)throw Error("Batch requests are validated but not staged: this package format cannot represent a Safe batch without Protocol Kit/MultiSend encoding. Send one transaction per request.");
-    stageAppTransaction(m.transactions[0],id,"safe-workspace/v2");appReply(id,{staged:true,requiresManualPackageCreation:true,signing:false,execution:false});return;
-   }
-   if(m.type==="PING"){appReply(id,{pong:true});return;}
-   throw Error("Unsupported safe-workspace/v2 message type.");
-  }catch(e){appReply(id,null,{code:-32602,message:e.message});log("Rejected v2 app request: "+e.message);}
+  if(m.protocol==="safe-workspace/v2"&&id!==undefined){
+   try{$("appFrame").contentWindow.postMessage({protocol:"safe-workspace/v2",type:"RESPONSE",requestId:String(id),error:{code:-32004,message:"The standalone workspace does not expose a Safe host bridge or Safe-specific context."}},"*");}catch{}
+  }
+  $("appProtocolState").textContent="The iframe requested a workspace/Safe host bridge. That bridge is disabled in standalone Mode 1; use the workspace controls directly.";
+  log("Iframe bridge request rejected: standalone mode does not expose Safe host context.");
  }
 });
-$("appFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2_000_000){log("Rejected local dApp: maximum file size is 2 MB.");$("appProtocolState").textContent="Upload rejected: maximum file size is 2 MB.";return;}try{const html=await f.text();if(!/<html[\s>]/i.test(html)&&!/<body[\s>]/i.test(html))throw Error("File does not look like an HTML document.");loadAppHtml(html,f.name);$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Waiting for SAFE_APP_READY or safe-workspace/v2 HELLO. External scripts still require network access.";}catch(err){$("appProtocolState").textContent="Could not load local file: "+err.message;log("Could not load app: "+err.message);}});
-function loadRemoteUrl(){try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter the full dApp URL.");const u=new URL(raw);const localHttp=(u.protocol==="http:"&&(u.hostname==="localhost"||u.hostname==="127.0.0.1"||u.hostname==="[::1]"));if(u.protocol!=="https:"&&!localHttp)throw Error("Use an HTTPS URL (HTTP is allowed only for localhost development). ");unloadApp();const frame=$("appFrame");frame.removeAttribute("srcdoc");frame.setAttribute("sandbox",u.origin!==location.origin?"allow-scripts allow-forms allow-same-origin":"allow-scripts allow-forms");frame.src=u.href;state.importedApp={label:u.href,kind:"url"};$("appLabel").textContent=u.hostname;$("appProtocolState").textContent="Navigating to URL. The browser may block embedding if the site sends X-Frame-Options or restrictive Content-Security-Policy frame-ancestors headers. Waiting for Safe Apps SDK handshake…";log("Navigating iframe to "+u.href);
- if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===u.href&&!state.appHandshake){$("appProtocolState").textContent="The iframe navigated but no Safe Apps handshake was received. Possible causes: X-Frame-Options/CSP frame-ancestors blocking, app is not a Safe Apps SDK app, a JavaScript/CDN error, or an origin/bridge mismatch. This browser-only page cannot bypass a site's anti-iframe policy. Try the site's embeddable app URL, or download its HTML bundle and use Local upload.";}},8000);
+$("appFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2_000_000){log("Rejected local dApp: maximum file size is 2 MB.");$("appProtocolState").textContent="Upload rejected: maximum file size is 2 MB.";return;}try{const html=await f.text();if(!/<html[\s>]/i.test(html)&&!/<body[\s>]/i.test(html))throw Error("File does not look like an HTML document.");loadAppHtml(html,f.name);$("appProtocolState").textContent="Local HTML loaded into an isolated sandbox. Standalone mode does not provide Safe Apps host context or an iframe bridge. External scripts still require network access.";}catch(err){$("appProtocolState").textContent="Could not load local file: "+err.message;log("Could not load app: "+err.message);}});
+function loadRemoteUrl(){try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter the full dApp URL.");const u=new URL(raw);const localHttp=(u.protocol==="http:"&&(u.hostname==="localhost"||u.hostname==="127.0.0.1"||u.hostname==="[::1]"));if(u.protocol!=="https:"&&!localHttp)throw Error("Use an HTTPS URL (HTTP is allowed only for localhost development). ");unloadApp();const frame=$("appFrame");frame.removeAttribute("srcdoc");frame.setAttribute("sandbox",u.origin!==location.origin?"allow-scripts allow-forms allow-same-origin":"allow-scripts allow-forms");frame.src=u.href;state.importedApp={label:u.href,kind:"url"};$("appLabel").textContent=u.hostname;$("appProtocolState").textContent="Loading the dApp in an iframe. The browser may block embedding if the site sends X-Frame-Options or restrictive Content-Security-Policy frame-ancestors headers. Standalone mode does not provide Safe Apps host context, and the parent wallet is not automatically injected into this iframe.";log("Navigating iframe to "+u.href);
+ if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===u.href&&!state.appHandshake){$("appProtocolState").textContent="The iframe loaded without a standalone-compatible integration. Safe Apps host context is intentionally unavailable in Mode 1. Possible causes also include X-Frame-Options/CSP frame-ancestors blocking, JavaScript/CDN errors, or an app that requires the official Safe Apps host. This page cannot bypass a site's anti-iframe policy.";}},8000);
  }catch(e){$("appProtocolState").textContent="Could not load URL: "+e.message;log("Could not load URL: "+e.message);}}
 $("loadUrl").addEventListener("click",loadRemoteUrl);
 $("appUrl").addEventListener("keydown",e=>{if(e.key==="Enter")loadRemoteUrl();});
 $("openUrlTab").addEventListener("click",()=>{try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter a URL first.");const u=new URL(raw);if(!["https:","http:"].includes(u.protocol))throw Error("Only web URLs can be opened.");window.open(u.href,"_blank","noopener,noreferrer");log("Opened URL in a separate tab for diagnostics. This does not connect that tab to the Safe Apps bridge.");}catch(e){log("Could not open URL: "+e.message);}});
 $("unloadApp").addEventListener("click",unloadApp);
-$("appFrame").addEventListener("load",()=>{if(state.importedApp){$("appProtocolState").textContent="Iframe navigation completed. Waiting for SAFE_APP_READY or safe-workspace/v2 HELLO. Safe Apps dApps use the SDK bridge; they do not automatically receive the host tab's window.ethereum.";}});
+$("appFrame").addEventListener("load",()=>{if(state.importedApp){$("appProtocolState").textContent="Iframe navigation completed. Standalone mode is active; Safe Apps host context and iframe bridge are unavailable. The workspace's own injected-wallet connection and transaction builder remain available.";}});
 $("appFrame").addEventListener("error",()=>{$("appProtocolState").textContent="Browser failed to load the dApp URL. Check URL/network access and whether the site permits iframe embedding.";});
 function initWalletDetection(){discoverProviders();if(window.ethereum?.on)window.ethereum.on("ethereum#initialized",discoverProviders);}
 window.addEventListener("ethereum#initialized",initWalletDetection,{once:true});
