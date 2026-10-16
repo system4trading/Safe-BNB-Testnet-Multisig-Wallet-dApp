@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,7 +12,7 @@ main{max-width:1120px;margin:auto;padding:26px 16px 64px}header{display:flex;ali
 h1{font-size:28px;line-height:1.15;margin:0 0 8px}h2{font-size:17px;margin:0 0 8px}h3{font-size:14px;margin:0 0 8px}.muted,p{color:var(--muted)}p{margin:7px 0 13px}.eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
 .panel{background:linear-gradient(145deg,#171b21,#12151a);border:1px solid var(--line);border-radius:15px;padding:18px;margin:16px 0;box-shadow:0 8px 26px #0002}.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}.step{display:grid;place-items:center;width:27px;height:27px;border:1px solid #65521a;border-radius:8px;color:var(--gold);font-weight:800}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}label{display:block;color:var(--muted);font-size:12px;margin:10px 0 5px}
-input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px;font:inherit;min-width:0}input:focus,textarea:focus,select:focus{outline:1px solid var(--gold);border-color:var(--gold)}textarea{min-height:110px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}button{border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:700;background:#252b33;color:var(--text)}button:hover:not(:disabled){filter:brightness(1.12)}button.primary{background:var(--gold);color:#151515;border-color:var(--gold)}button:disabled{opacity:.4;cursor:not-allowed}.danger{border-color:#7c3e43;color:#ffaaaa}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.status{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0c0f13;white-space:pre-wrap;overflow-wrap:anywhere}.warning{color:#ffd875}.good{color:var(--green)}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 9px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}iframe{width:100%;height:440px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:12px}.small{font-size:12px}.split{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.callout{border-left:3px solid var(--gold);padding:10px 12px;background:#f0b90b0b;color:#d9dce1;border-radius:0 8px 8px 0}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.hidden{display:none!important}
+input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px;font:inherit;min-width:0}input:focus,textarea:focus,select:focus{outline:1px solid var(--gold);border-color:var(--gold)}textarea{min-height:110px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}button{border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer;font-weight:700;background:#252b33;color:var(--text)}button:hover:not(:disabled){filter:brightness(1.12)}button.primary{background:var(--gold);color:#151515;border-color:var(--gold)}button:disabled{opacity:.4;cursor:not-allowed}.danger{border-color:#7c3e43;color:#ffaaaa}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.status{padding:12px;border:1px solid var(--line);border-radius:9px;background:#0c0f13;white-space:pre-wrap;overflow-wrap:anywhere}.warning{color:#ffd875}.good{color:var(--green)}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 9px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}iframe{width:100%;height:440px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:12px}.small{font-size:12px}.split{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.callout{border-left:3px solid var(--gold);padding:10px 12px;background:#f0b90b0b;color:#d9dce1;border-radius:0 8px 8px 0}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.hidden{display:none!important}.codebox{width:100%;min-height:150px;background:#090c10;color:#dbe7f3;border:1px solid var(--line);border-radius:8px;padding:12px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto}.security-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:680px){.security-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.grid,.grid.three{grid-template-columns:1fr}main{padding:20px 12px 44px}h1{font-size:24px}.panel{padding:14px}}
 </style>
 </head>
@@ -40,10 +41,60 @@ input,textarea,select{width:100%;background:#0b0e12;color:var(--text);border:1px
   <div><label for="appUrl">Or load an HTTPS dApp URL</label><input id="appUrl" placeholder="https://your-testnet-dapp.example"></div>
  </div>
  <div class="actions"><button id="loadUrl" class="primary">Load URL</button><button id="openUrlTab">Open URL in new tab</button><button id="unloadApp">Unload dApp</button><span id="appLabel" class="pill">No dApp loaded</span></div>
+ <div class="callout small" style="margin-top:12px">
+  <strong>Want the custom app connected to the real Safe?</strong>
+  This workspace cannot pass Safe wallet access into its own iframe. Open the Safe interface, then add the custom app there so Safe itself hosts it.
+  <div class="actions">
+   <button id="openSafeWallet" class="primary" type="button">Open BNB Chain Safe Wallet</button>
+   <button id="copyCustomAppUrl" type="button">Copy custom app URL</button>
+  </div>
+  <p class="small">In the Safe interface, select <strong>Apps → Add Custom App</strong> and paste <code>https://usdtinrp-testnet.system4trading.com/</code>. Make sure the Safe interface is on BNB Smart Chain Testnet and only add the app if you trust its source.</p>
+  <p id="safeLaunchStatus" class="small muted" aria-live="polite">Opening Safe does not automatically add the app or connect it to this iframe.</p>
+ </div>
  <iframe id="appFrame" title="Sandboxed custom dApp" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe>
  <div class="callout small warning">Treat imported apps as untrusted. Inspect the source before use. Review every proposed destination, value, calldata byte and operation. DelegateCall (1) is especially sensitive.</div>
  <div id="appProtocolState" class="status" aria-live="polite">Host protocol idle. Load a dApp to start the Safe Apps handshake or safe-workspace/v2 bridge.</div>
  <details><summary>Host protocol support</summary><p class="small">The host recognizes the Safe Apps SDK message envelope (<code>SAFE_APP_READY</code>, <code>SAFE_APP_REQUEST</code>, <code>SAFE_APP_RESPONSE</code>) and safe-workspace/v2 messages (<code>HELLO</code>, <code>GET_CONTEXT</code>, <code>REQUEST_TRANSACTION</code>, <code>REQUEST_TRANSACTIONS</code>). Read-only context and selected EIP-1193 reads are supported. Transaction requests are staged for manual review only; no Safe transaction hash is fabricated and no signing/execution is performed.</p><p class="small">v2 example: <code>window.parent.postMessage({protocol:"safe-workspace/v2",type:"REQUEST_TRANSACTION",requestId:"req-1",transaction:{to:"0x…",value:"0",data:"0x",operation:0}},"*")</code>. Replies use <code>safe-workspace/v2</code> with type <code>RESPONSE</code>, the same requestId, and either <code>result</code> or <code>error</code>.</p></details>
+ <details class="panel" style="margin:14px 0 0;padding:14px;background:#101318">
+  <summary><strong>Custom Safe App security policy — manifest.json & HTTP headers</strong></summary>
+  <p class="small warning">These are server-side templates for the custom app host, not settings that this parent HTML can enforce on a remote iframe. Apply them on <code>usdtinrp-testnet.system4trading.com</code>. Adjust the icon path and allowed parent origins to match your deployment.</p>
+  <h3>1. Root manifest.json</h3>
+  <p class="small">Publish this at <code>https://usdtinrp-testnet.system4trading.com/manifest.json</code>. Ensure the referenced icon file exists and is a square SVG (at least 128×128 is recommended by Safe).</p>
+  <textarea id="safeManifestTemplate" class="codebox" readonly spellcheck="false">{
+  "name": "USDT in INR Testnet",
+  "description": "Testnet app for USDT/INR workflows.",
+  "iconPath": "/icon.svg"
+}</textarea>
+  <div class="actions"><button type="button" data-copy-target="safeManifestTemplate">Copy manifest.json</button></div>
+  <h3 style="margin-top:16px">2. Nginx headers (template)</h3>
+  <p class="small">Merge into your existing server configuration; do not create duplicate conflicting CSP headers. Keep only parent origins you intentionally trust. The <code>frame-ancestors</code> directive must be an HTTP response header, not a meta tag.</p>
+  <textarea id="safeHeadersTemplate" class="codebox" readonly spellcheck="false"># Allow Safe to fetch the public manifest cross-origin
+location = /manifest.json {
+    default_type application/json;
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Access-Control-Allow-Methods "GET" always;
+    add_header Access-Control-Allow-Headers "X-Requested-With, Content-Type, Authorization" always;
+    add_header X-Content-Type-Options "nosniff" always;
+}
+
+# Apply to the app HTML response(s), merging with any existing CSP
+add_header Content-Security-Policy "frame-ancestors 'self' https://app.safe.global https://multisig.bnbchain.org https://dapps.system4trading.com; object-src 'none'; base-uri 'self'" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# Remove conflicting X-Frame-Options: DENY or SAMEORIGIN on app HTML
+# if cross-origin embedding in the trusted Safe/workspace origins is required.</textarea>
+  <div class="actions"><button type="button" data-copy-target="safeHeadersTemplate">Copy Nginx headers</button></div>
+  <h3 style="margin-top:16px">3. Deployment checks</h3>
+  <ul class="small">
+   <li><code>GET /manifest.json</code> returns HTTP 200, JSON content type, and the CORS headers above.</li>
+   <li>The icon path in the manifest resolves to a publicly accessible image.</li>
+   <li>The app HTML response allows only the intended embedding origins via <code>Content-Security-Policy: frame-ancestors</code>.</li>
+   <li>Remove conflicting <code>X-Frame-Options: DENY</code> or <code>SAMEORIGIN</code> if cross-origin embedding is intended; do not use a wildcard frame policy just to bypass errors.</li>
+   <li>Open the app in the actual Safe interface and confirm the Safe Apps SDK initializes. CORS/CSP alone do not provide Safe wallet context.</li>
+  </ul>
+  <p id="securityCopyStatus" class="small muted" aria-live="polite">Copy a template, apply it to the app server, then verify the live response headers in browser DevTools → Network.</p>
+ </details>
 </section>
 
 <section class="panel">
@@ -305,12 +356,29 @@ $("appFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(
 function loadRemoteUrl(){try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter the full dApp URL.");const u=new URL(raw);const localHttp=(u.protocol==="http:"&&(u.hostname==="localhost"||u.hostname==="127.0.0.1"||u.hostname==="[::1]"));if(u.protocol!=="https:"&&!localHttp)throw Error("Use an HTTPS URL (HTTP is allowed only for localhost development). ");unloadApp();const frame=$("appFrame");frame.removeAttribute("srcdoc");frame.setAttribute("sandbox",u.origin!==location.origin?"allow-scripts allow-forms allow-same-origin":"allow-scripts allow-forms");frame.src=u.href;state.importedApp={label:u.href,kind:"url"};$("appLabel").textContent=u.hostname;$("appProtocolState").textContent="Navigating to URL. The browser may block embedding if the site sends X-Frame-Options or restrictive Content-Security-Policy frame-ancestors headers. Waiting for Safe Apps SDK handshake…";log("Navigating iframe to "+u.href);
  if(state.appLoadTimer)clearTimeout(state.appLoadTimer);state.appLoadTimer=setTimeout(()=>{if(state.importedApp?.label===u.href&&!state.appHandshake){$("appProtocolState").textContent="The iframe navigated but no Safe Apps handshake was received. Possible causes: X-Frame-Options/CSP frame-ancestors blocking, app is not a Safe Apps SDK app, a JavaScript/CDN error, or an origin/bridge mismatch. This browser-only page cannot bypass a site's anti-iframe policy. Try the site's embeddable app URL, or download its HTML bundle and use Local upload.";}},8000);
  }catch(e){$("appProtocolState").textContent="Could not load URL: "+e.message;log("Could not load URL: "+e.message);}}
+$("openSafeWallet").addEventListener("click",()=>{
+ try {
+  const w=window.open("https://multisig.bnbchain.org/","_blank","noopener,noreferrer");
+  $("safeLaunchStatus").textContent=w===null?"The browser blocked the new tab. Allow pop-ups for this page, then click Open BNB Chain Safe Wallet again.":"Opened the BNB Chain Safe interface in a new tab. In that tab, use Apps → Add Custom App and paste the custom app URL shown here.";
+ } catch(e) { $("safeLaunchStatus").textContent="Could not open Safe interface: "+e.message; }
+});
+$("copyCustomAppUrl").addEventListener("click",async()=>{
+ const appUrl="https://usdtinrp-testnet.system4trading.com/";
+ try { await navigator.clipboard.writeText(appUrl); $("safeLaunchStatus").textContent="Copied custom app URL. In the Safe interface, use Apps → Add Custom App and paste it."; }
+ catch(e) { $("safeLaunchStatus").textContent="Clipboard access was blocked. Copy this URL manually: "+appUrl; }
+});
 $("loadUrl").addEventListener("click",loadRemoteUrl);
 $("appUrl").addEventListener("keydown",e=>{if(e.key==="Enter")loadRemoteUrl();});
 $("openUrlTab").addEventListener("click",()=>{try{const raw=$("appUrl").value.trim();if(!raw)throw Error("Enter a URL first.");const u=new URL(raw);if(!["https:","http:"].includes(u.protocol))throw Error("Only web URLs can be opened.");window.open(u.href,"_blank","noopener,noreferrer");log("Opened URL in a separate tab for diagnostics. This does not connect that tab to the Safe Apps bridge.");}catch(e){log("Could not open URL: "+e.message);}});
 $("unloadApp").addEventListener("click",unloadApp);
 $("appFrame").addEventListener("load",()=>{if(state.importedApp){$("appProtocolState").textContent="Iframe navigation completed. Waiting for SAFE_APP_READY or safe-workspace/v2 HELLO. Safe Apps dApps use the SDK bridge; they do not automatically receive the host tab's window.ethereum.";}});
 $("appFrame").addEventListener("error",()=>{$("appProtocolState").textContent="Browser failed to load the dApp URL. Check URL/network access and whether the site permits iframe embedding.";});
+document.querySelectorAll("[data-copy-target]").forEach(button=>button.addEventListener("click",async()=>{
+ const target=document.getElementById(button.dataset.copyTarget);if(!target)return;
+ const text=target.value;
+ try{await navigator.clipboard.writeText(text);document.getElementById("securityCopyStatus").textContent=`Copied ${button.textContent.replace(/^Copy /,"")}. Apply it on the custom app server; this HTML cannot set remote response headers.`;}
+ catch(e){target.focus();target.select();document.getElementById("securityCopyStatus").textContent="Clipboard permission was blocked. The template is selected; copy it manually and apply it on the custom app server.";}
+}));
 function initWalletDetection(){discoverProviders();if(window.ethereum?.on)window.ethereum.on("ethereum#initialized",discoverProviders);}
 window.addEventListener("ethereum#initialized",initWalletDetection,{once:true});
 window.addEventListener("load",initWalletDetection);
